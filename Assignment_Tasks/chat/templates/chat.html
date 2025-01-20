@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style> 
+    body { 
+        display: flex; 
+    } 
+    #user-list { 
+        flex-basis: 20%; 
+        background: #f4f4f4; 
+        padding: 10px;
+    } 
+    #chat-box { 
+        flex-grow: 1; 
+        padding: 10px; 
+    } 
+    .collapsible { 
+        cursor: pointer; 
+        padding: 10px; 
+        border: none; 
+        text-align: left; 
+        font-size: 15px; 
+    } 
+    .active, .collapsible:hover {
+         background-color: #ccc; 
+    } 
+    .collapsible-content { 
+        padding: 0 18px; 
+        display: none; 
+        background-color: #f9f9f9; 
+    } 
+    </style>
+</head>
+<body>
+    <button type="button" class="collapsible">Registered Users</button>
+    <div class="collapsible-content" id="user-list">
+        <ul>
+            {% for user in users %}
+            <li><a href="{% url 'chat_with_user' user.username %}">{{user.username}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="chat-box">
+        {% if selected_user %} 
+        <h3>Chatting with {{ selected_user.username }}</h3> 
+        <div id="messages"> 
+            {% for message in messages %} 
+            <p><strong>{{ message.sender.username }}:</strong> {{ message.content }}</p> 
+            {% endfor %} 
+        </div> 
+        <input type="text" id="message-input" placeholder="Type a message..."> 
+        <button id="send-button" onclick="sendMessage()">Send</button> 
+        {% else %} 
+        <p>Select a user to chat with.</p> 
+        {% endif %}
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            const coll = document.querySelector('.collapsible');
+            coll.addEventListener('click', function(){
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        const roomName = '{{ request.user.username}}';
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#messages').innerHTML += '<p><strong>' + data.user + '</strong>' + data.message + '</p>';
+        };
+        function sendMessage() { 
+            const messageInput = document.querySelector('#message-input'); 
+            const message = messageInput.value; 
+            chatSocket.send(JSON.stringify({ 
+                'message': message 
+            })); 
+            messageInput.value = ''; 
+        }
+    </script>
+</body>
+</html>
