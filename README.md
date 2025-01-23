@@ -42,7 +42,7 @@ Follow these steps to get the ChatApp up and running on your local machine.
 ### Steps
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/chatapp.git
+    git clone https://github.com/Fatima-Munshi/chat_project.git
     cd chatapp
     ```
 
